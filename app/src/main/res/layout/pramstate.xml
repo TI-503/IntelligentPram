@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/sensorText"
+        android:layout_width="128dp"
+        android:layout_height="17dp"
+        android:layout_marginStart="8dp"
+        android:text="当前传感器数值："
+        android:textColor="@android:color/black"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/startMonitorButton"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <TextView
+        android:id="@+id/stateText"
+        android:layout_width="150dp"
+        android:layout_height="47dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="等待监听"
+        android:textAlignment="center"
+        android:textColor="@android:color/holo_orange_dark"
+        app:layout_constraintBottom_toTopOf="@+id/goFrontButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/sensorText" />
+
+    <Button
+        android:id="@+id/returnMainButton1"
+        android:layout_width="100dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
+        android:onClick="returnMain1"
+        android:text="返回"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@+id/stopListenSoundButton" />
+
+    <Button
+        android:id="@+id/startMonitorButton"
+        android:layout_width="275dp"
+        android:layout_height="45dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:onClick="startMonitor"
+        android:text="开启视频、传感器监听"
+        android:textSize="14sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/webView" />
+
+    <WebView
+        android:id="@+id/webView"
+        android:layout_width="320dp"
+        android:layout_height="180dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/goFrontButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
+        android:text="↑"
+        android:textAlignment="center"
+        android:textAllCaps="false"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/stopMoveButton"
+        app:layout_constraintLeft_toRightOf="@+id/goAntiClockwiseButton" />
+
+    <Button
+        android:id="@+id/goRearButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:text="↓"
+        android:textAlignment="center"
+        android:textAllCaps="false"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@+id/listenSoundButton" />
+
+    <Button
+        android:id="@+id/goLeftButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:text="←"
+        android:textAlignment="center"
+        android:textAllCaps="false"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/listenSoundButton"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <Button
+        android:id="@+id/goRightButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:text="→"
+        android:textAlignment="center"
+        android:textAllCaps="false"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/stopListenSoundButton"
+        app:layout_constraintLeft_toRightOf="@+id/stopMoveButton" />
+
+    <Button
+        android:id="@+id/stopMoveButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
+        android:text="停止"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/goRearButton"
+        app:layout_constraintLeft_toRightOf="@+id/goLeftButton" />
+
+    <Button
+        android:id="@+id/goClockwiseButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:text="Cw"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/goRightButton"
+        app:layout_constraintLeft_toRightOf="@+id/goFrontButton"
+        tools:text="Cw" />
+
+    <Button
+        android:id="@+id/goAntiClockwiseButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:elevation="0dp"
+        android:text="ACw"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/goLeftButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        tools:text="ACw" />
+
+    <LinearLayout
+        android:id="@+id/Parent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/webView"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintLeft_toRightOf="@+id/glview_1"
+        android:layout_marginLeft="8dp">
+
+        <FrameLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_gravity="bottom|center" >
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:orientation="vertical" >
+
+                <!-- 顶部图片 -->
+
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:layout_weight="100.0"
+                    android:orientation="horizontal" >
+
+                    <!-- 横向空白占1份 -->
+
+                    <!-- 横向占4份 -->
+                    <LinearLayout
+                        android:id="@+id/meter"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:layout_weight="4"
+                        android:animationCache="true"
+                        android:background="@drawable/thermometer_dial"
+                        android:clipChildren="false"
+                        android:clipToPadding="false"
+                        android:persistentDrawingCache="all" >
+
+                        <!-- 横向占189份,刻度表左边刻度摄氏温度所占比例 -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="fill_parent"
+                            android:layout_weight="189"
+                            android:visibility="invisible" />
+
+                        <!-- 横向占69份,刻度表水银柱子所在区域所占比例 -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="fill_parent"
+                            android:layout_weight="69"
+                            android:orientation="vertical" >
+
+                            <!-- 竖向占131.0份,刻度表50°以上的部分 -->
+                            <LinearLayout
+                                android:layout_width="fill_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="131.0" />
+
+                            <!--
+                                      竖向占773.0份,水银针正好等于刻度表从-20°到50°
+                                        因为柱子和圆球直接有点断层，把773变成774
+                                        默认不显示柱子，当有传感器数据时，才显示出来
+                            -->
+                            <LinearLayout
+                                android:id="@+id/alcohol"
+                                android:layout_width="fill_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="774.0"
+                                android:background="@drawable/alcohol"
+                                android:orientation="horizontal" />
+
+                            <!--
+                                     竖向占104.0份 ,刻度表-20°以上的部分
+                                    因为柱子和圆球直接有点断层，把104变成103
+                            -->
+                            <LinearLayout
+                                android:layout_width="fill_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="103.0" />
+                        </LinearLayout>
+
+                        <!-- 横向占189份,刻度表右边刻度华氏温度所占比例 -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="fill_parent"
+                            android:layout_weight="187"
+                            android:visibility="invisible" />
+                    </LinearLayout>
+
+                    <!-- 横向占4份 -->
+
+                    <!-- 横向空白占1份 -->
+                </LinearLayout>
+
+                <!-- 尾部图片 -->
+            </LinearLayout>
+        </FrameLayout>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/listenSoundButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:text="听声记位"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <Button
+        android:id="@+id/stopListenSoundButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:text="停止记录"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@+id/goRearButton" />
+
+    <android.opengl.GLSurfaceView
+        android:id="@+id/glview_1"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/startMonitorButton"
+        app:layout_constraintLeft_toRightOf="@+id/stateText"
+        android:layout_marginLeft="20dp" />
+
+</android.support.constraint.ConstraintLayout>
