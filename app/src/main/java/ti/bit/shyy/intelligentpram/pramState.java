@@ -5,7 +5,9 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.SoundPool;
 import android.opengl.EGLConfig;
 import android.opengl.GLU;
 import android.os.AsyncTask;
@@ -61,12 +63,15 @@ public class pramState extends AppCompatActivity {
     public Button Button_listenSound;
     public Button Button_stopListenSound;
 
+    public MediaPlayer mpDangerous;
+    public MediaPlayer mpError;
+
     Thread sendMoveSubThread;
 
     private LinearLayout alcohol;
     private LinearLayout meter;
     public float staratemp;
-    public float temp;
+    public float temp;  // The fake Temperature used to draw
     private float temperatureF;
     private float AccelerateZ;
 
@@ -75,12 +80,12 @@ public class pramState extends AppCompatActivity {
     private TCP_GetState TCPst;
     private TCP_sendMove TCPsM;
 
-    private GLSurfaceView  mView;
-    private final float pi=(float)Math.acos(0.0)*2;
-    private double alpha[]={pi/3,pi/3,pi/3};
-    float[] a_x={0f,0f,0f,2f,0f,0f};
-    float[] a_y={0f,0f,0f,0f,2f,0f};
-    //float[] a_z={0f,0f,0f,0f,0f,2f};
+//    private GLSurfaceView  mView;
+//    private final float pi=(float)Math.acos(0.0)*2;
+//    private double alpha[]={pi/3,pi/3,pi/3};
+//    float[] a_x={0f,0f,0f,2f,0f,0f};
+//    float[] a_y={0f,0f,0f,0f,2f,0f};
+//    //float[] a_z={0f,0f,0f,0f,0f,2f};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +100,11 @@ public class pramState extends AppCompatActivity {
         webView = (WebView) findViewById(R.id.webView);
         webView.getSettings().setLoadWithOverviewMode(true);
         webView.getSettings().setUseWideViewPort(true);
+
+        // MediaPlayer
+        mpDangerous = MediaPlayer.create(this, R.raw.dangerouserror);
+        mpError = MediaPlayer.create(this, R.raw.criticalstop);
+
         // Start monitor
         TextV_State = (TextView) findViewById(R.id.stateText);
         Button_startMonitor = (Button) findViewById(R.id.startMonitorButton);
@@ -107,20 +117,30 @@ public class pramState extends AppCompatActivity {
                 // State
                 TCPst = new TCP_GetState();
                 TCPst.execute();
+
+                Button_startMonitor.setEnabled(false);
             }
         });
 
-        //mView用于显示3D图像，当需要显示时同时去掉此部分注释和MyRenderer类的注释,同时去掉activity_main.xml文件中的一段GLSurfaceView的注释
-        mView=(GLSurfaceView)findViewById(R.id.glview_1);
-        mView.setRenderer(new MyRenderer());
-        mView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-        mView = new GLSurfaceView(this);
+//        //mView用于显示3D图像，当需要显示时同时去掉此部分注释和MyRenderer类的注释,同时去掉activity_main.xml文件中的一段GLSurfaceView的注释
+//        mView=(GLSurfaceView)findViewById(R.id.glview_1);
+//        mView.setRenderer(new MyRenderer());
+//        mView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+//        mView = new GLSurfaceView(this);
 
         // Return Main1
         Button_returnMain1 = (Button) findViewById(R.id.returnMainButton1);
         Button_returnMain1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View MainActivity1V) {
+                if(TCPst != null && TCPst.getStatus() == AsyncTask.Status.RUNNING)
+                {
+                    TCPst.cancel(true);
+                }
+
+                mpDangerous.release();
+                mpError.release();
+
                 finish();
             }
         });
@@ -278,7 +298,8 @@ public class pramState extends AppCompatActivity {
         @Override
         protected void onPreExecute()
         {
-            TextV_State.setText("Listening...");
+            TextV_State.setTextColor(Color.BLUE);
+            TextV_State.setText("等待数据...");
         }
 
         @Override
@@ -304,64 +325,66 @@ public class pramState extends AppCompatActivity {
 
         protected void onProgressUpdate(String... Data) {
             String Whole = Data[0];
-            String Tempra = Whole.substring(Whole.indexOf("Temp is ") + 8, Whole.indexOf(" F ") - 1);
-            String AccX = Whole.substring(Whole.indexOf("AccX=") + 5, Whole.indexOf(",AccY") - 1);
-            String AccY = Whole.substring(Whole.indexOf("AccY=") + 5, Whole.indexOf(",AccZ") - 1);
+            String Tempra = Whole.substring(Whole.indexOf("Temp is ") + 8, Whole.indexOf(" F "));
+            String AccX = Whole.substring(Whole.indexOf("AccX=") + 5, Whole.indexOf(",AccY"));
+            String AccY = Whole.substring(Whole.indexOf("AccY=") + 5, Whole.indexOf(",AccZ"));
             String AccZ = Whole.substring(Whole.indexOf("AccZ=") + 5);
 
-            TextV_State.setText("The Temparature is " + Tempra + "\n" + "The acceleration in X, Y and Z is" + AccX + "\n" + AccY + "\n" + AccZ);
+            //TextV_State.setText("The Temparature is " + Tempra + "\n" + "The acceleration in X, Y and Z is" + AccX + "\n" + AccY + "\n" + AccZ);
 
+            // Draw the Thermometer
             float TEMPFLT = Float.parseFloat(Tempra);
             setTemperatureF(TEMPFLT);
             mUpdateUi();
 
-            // Use the Acc and Calculate
-            double Vx=Double.parseDouble(AccX);//将数值字符串转换为实数，电压值
-            double Vy=Double.parseDouble(AccY);
-            double Vz=Double.parseDouble(AccZ);
-            Vx=(Vx-0.73)/0.28;//计算三个方向的加速度值
-            Vy=(Vy-0.77)/0.28;
-            Vz=(Vz-0.788)/0.28;
-
-            Vx=Vx<1?Vx:0.9999999;//加速度阈值处理
-            Vx=Vx>-1?Vx:-0.9999999;
-
-            Vy=Vy<1?Vy:0.9999999;
-            Vy=Vy>-1?Vy:-0.9999999;
-
-            Vz=Vz<1?Vz:0.9999999;
-            Vz=Vz>-1?Vz:-0.9999999;
-            alpha[0]=Math.acos(Vx);//计算角度
-            alpha[1]=Math.acos(Vy);
-            alpha[2]=Math.acos(Vz);
-
-            double temp_cos2,temp_cos1,temp_sin1;//临时变量，用于计算向量
-            temp_cos2=Math.cos(alpha[1]);
-            temp_cos1=Math.cos(alpha[0]);
-            temp_sin1=Math.sin(alpha[0]);
-
-            a_x[3]=0f;//计算芯片的x方向在世界坐标系中的坐标
-            a_x[4]=(float)temp_sin1;
-            a_x[5]=(float)temp_cos1;
-
-            double temp_a_yx;//计算芯片的y方向在世界坐标系中的坐标
-            a_y[5]=(float)temp_cos2;
-            a_y[4]=(float)(-temp_cos2*temp_cos1/temp_sin1);
-            temp_a_yx=1-temp_cos2*temp_cos2-a_y[4]*a_y[4];
-            temp_a_yx=temp_a_yx>0?temp_a_yx:0;
-            a_y[3]=(float)Math.sqrt(temp_a_yx);
-
-            Log.i("ACC","alpha x:"+alpha[0]*180/pi+"\nalpha y:"+alpha[1]*180/pi+"\n" +
-                    "alpha z:"+alpha[2]*180/pi+"\n"+"1:x=("+a_x[3]+","+a_x[4]+","+a_x[5]+") y=("+a_y[3]+","+a_y[4]+","+a_y[5]+")\n");
-
-            double temp_len=a_y[3]*a_y[3]+a_y[4]*a_y[4]+a_y[5]*a_y[5];
-            temp_len=Math.sqrt(temp_len);
-
-            a_y[3]=(float)(a_y[3]/temp_len);//y坐标向量单位化
-            a_y[4]=(float)(a_y[4]/temp_len);
-            a_y[5]=(float)(a_y[5]/temp_len);
-
-            Log.i("ACC","2:x=("+a_x[3]+","+a_x[4]+","+a_x[5]+") y=("+a_y[3]+","+a_y[4]+","+a_y[5]+")\n");
+//            // Draw the OpenGL Graphics
+//            // Use the Acc and Calculate
+//            double Vx=Double.parseDouble(AccX);//将数值字符串转换为实数，电压值
+//            double Vy=Double.parseDouble(AccY);
+//            double Vz=Double.parseDouble(AccZ);
+//            Vx=(Vx-0.73)/0.28;//计算三个方向的加速度值
+//            Vy=(Vy-0.77)/0.28;
+//            Vz=(Vz-0.788)/0.28;
+//
+//            Vx=Vx<1?Vx:0.9999999;//加速度阈值处理
+//            Vx=Vx>-1?Vx:-0.9999999;
+//
+//            Vy=Vy<1?Vy:0.9999999;
+//            Vy=Vy>-1?Vy:-0.9999999;
+//
+//            Vz=Vz<1?Vz:0.9999999;
+//            Vz=Vz>-1?Vz:-0.9999999;
+//            alpha[0]=Math.acos(Vx);//计算角度
+//            alpha[1]=Math.acos(Vy);
+//            alpha[2]=Math.acos(Vz);
+//
+//            double temp_cos2,temp_cos1,temp_sin1;//临时变量，用于计算向量
+//            temp_cos2=Math.cos(alpha[1]);
+//            temp_cos1=Math.cos(alpha[0]);
+//            temp_sin1=Math.sin(alpha[0]);
+//
+//            a_x[3]=0f;//计算芯片的x方向在世界坐标系中的坐标
+//            a_x[4]=(float)temp_sin1;
+//            a_x[5]=(float)temp_cos1;
+//
+//            double temp_a_yx;//计算芯片的y方向在世界坐标系中的坐标
+//            a_y[5]=(float)temp_cos2;
+//            a_y[4]=(float)(-temp_cos2*temp_cos1/temp_sin1);
+//            temp_a_yx=1-temp_cos2*temp_cos2-a_y[4]*a_y[4];
+//            temp_a_yx=temp_a_yx>0?temp_a_yx:0;
+//            a_y[3]=(float)Math.sqrt(temp_a_yx);
+//
+//            Log.i("ACC","alpha x:"+alpha[0]*180/pi+"\nalpha y:"+alpha[1]*180/pi+"\n" +
+//                    "alpha z:"+alpha[2]*180/pi+"\n"+"1:x=("+a_x[3]+","+a_x[4]+","+a_x[5]+") y=("+a_y[3]+","+a_y[4]+","+a_y[5]+")\n");
+//
+//            double temp_len=a_y[3]*a_y[3]+a_y[4]*a_y[4]+a_y[5]*a_y[5];
+//            temp_len=Math.sqrt(temp_len);
+//
+//            a_y[3]=(float)(a_y[3]/temp_len);//y坐标向量单位化
+//            a_y[4]=(float)(a_y[4]/temp_len);
+//            a_y[5]=(float)(a_y[5]/temp_len);
+//
+//            Log.i("ACC","2:x=("+a_x[3]+","+a_x[4]+","+a_x[5]+") y=("+a_y[3]+","+a_y[4]+","+a_y[5]+")\n");
 
             // checkDangerous
             float ZFLT = Float.parseFloat(AccZ);
@@ -445,168 +468,173 @@ public class pramState extends AppCompatActivity {
     */
     private void checkDangerous()
     {
-        // Safe Z > 50
-        // Dangerous Z [40, 50]
-        // DIE Z < 40
-        if(AccelerateZ >= 50)
+        // Safe Z > 55
+        // Dangerous Z [45, 55]
+        // DIE Z < 45
+        if(AccelerateZ >= 60)
         {
-            TextV_State.setText("SAFE");
+            TextV_State.setTextColor(Color.GREEN);
+            TextV_State.setText("安 全");
         }
         else
         {
-            if(AccelerateZ >= 40)
+            if(AccelerateZ >= 45)
             {
-                TextV_State.setText("DANGEROUS");
+                TextV_State.setTextColor(Color.rgb(255,97,0));
+                TextV_State.setText("危 险！");
+                mpDangerous.start();
             }
             else
             {
-                if(AccelerateZ < 40)
+                if(AccelerateZ < 45)
                 {
-                    TextV_State.setText("FALLEN DOWN");
+                    TextV_State.setTextColor(Color.RED);
+                    TextV_State.setText("即 将 倾 覆！！！");
+                    mpError.start();
                 }
             }
         }
     }
 
-    //以下部分为OpenGL，显示3D图像
-    class MyRenderer implements GLSurfaceView.Renderer
-    {
-        public void onSurfaceCreated(GL10 gl, javax.microedition.khronos.egl.EGLConfig config)
-        {
-            // Set the background frame color
-//            GLES20.glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-//            GLES20.glVertexAttribPointer();
-            gl.glClearColor(0, 0, 0, 1);
-            //启用顶点缓冲区
-            gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
-            //  GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-            //  GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-        }
-
-        public void onDrawFrame(GL10 gl)
-        {
-            gl.glClear(GL10.GL_COLOR_BUFFER_BIT);//清除颜色缓冲区
-
-            //模型视图矩阵
-            gl.glMatrixMode(gl.GL_MODELVIEW);
-            gl.glLoadIdentity();
-
-            GLU.gluLookAt(gl, 5,5, 5, 0, 0, 0, 0,0,1);
-
-            // 画三角形
-            // 绘制数组
-            // 三角形坐标
-            float[] coords = {
-                    1f,0f,1f,
-                    -1f,0f,1f,
-                    1f,0f,-1f,
-                    -1f,0f,-1f,
-            };
-            float[] axio_x={0f,0f,0f,2f,0f,0f};
-            float[] axio_y={0f,0f,0f,0f,2f,0f};
-            float[] axio_z={0f,0f,0f,0f,0f,2f};
-
-            //分配字节缓冲区控件,存放顶点坐标数据
-            float chip[]=new float[12];
-
-            chip[0]=a_x[3]+a_y[3];
-            chip[1]=a_x[4]+a_y[4];
-            chip[2]=a_x[5]+a_y[5];
-
-            chip[3]=a_x[3]-a_y[3];
-            chip[4]=a_x[4]-a_y[4];
-            chip[5]=a_x[5]-a_y[5];
-
-            chip[6]=a_y[3]-a_x[3];
-            chip[7]=a_y[4]-a_x[4];
-            chip[8]=a_y[5]-a_x[5];
-
-            chip[9]=-chip[0];
-            chip[10]=-chip[1];
-            chip[11]=-chip[2];
-
-            ByteBuffer ibb = ByteBuffer.allocateDirect(coords.length * 4);
-            ibb.order(ByteOrder.nativeOrder());//设置顺序(本地顺序)
-            FloatBuffer fbb = ibb.asFloatBuffer();//放置顶点坐标数组
-            fbb.put(coords);
-            ibb.position(0);//定位指针的位置,从该位置开始读取顶点数据
-            gl.glColor4f(0.5f, 0.5f, 0.5f, 1f);//设置绘图时的颜色
-            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, ibb);
-            gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);//绘制四边形
-
-            ibb = ByteBuffer.allocateDirect(chip.length * 4);
-            ibb.order(ByteOrder.nativeOrder());//设置顺序(本地顺序)
-            fbb = ibb.asFloatBuffer();//放置顶点坐标数组
-            fbb.put(chip);
-            ibb.position(0);//定位指针的位置,从该位置开始读取顶点数据
-            gl.glColor4f(0.5f, 0.5f, 0.5f, 1f);//设置绘图时的颜色
-            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, ibb);
-            gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);//绘制四边形
-
-            //分配字节缓冲区控件,存放顶点坐标数据
-            ByteBuffer ibbx = ByteBuffer.allocateDirect(axio_x.length * 4);
-            ibbx.order(ByteOrder.nativeOrder());//设置顺序(本地顺序)
-            FloatBuffer fbbx = ibbx.asFloatBuffer();//放置顶点坐标数组
-            fbbx.put(axio_x);
-            ibbx.position(0);//定位指针的位置,从该位置开始读取顶点数据
-            gl.glColor4f(1f, 0.5f, 0.5f, 1f);//设置绘图时的颜色
-            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, ibbx);
-            gl.glDrawArrays(GL10.GL_LINES, 0, 2);//绘制x轴
-
-            //分配字节缓冲区控件,存放顶点坐标数据
-            ByteBuffer ibby = ByteBuffer.allocateDirect(axio_y.length * 4);
-            ibby.order(ByteOrder.nativeOrder());//设置顺序(本地顺序)
-            FloatBuffer fbby = ibby.asFloatBuffer();//放置顶点坐标数组
-            fbby.put(axio_y);
-            ibby.position(0);//定位指针的位置,从该位置开始读取顶点数据
-            gl.glColor4f(0.5f,1f,  0.5f, 1f);//设置绘图时的颜色
-            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, ibby);
-            gl.glDrawArrays(GL10.GL_LINES, 0, 2);//绘制y轴
-
-            //分配字节缓冲区控件,存放顶点坐标数据
-            ByteBuffer ibbz = ByteBuffer.allocateDirect(axio_z.length * 4);
-            ibbz.order(ByteOrder.nativeOrder());//设置顺序(本地顺序)
-            FloatBuffer fbbz = ibbz.asFloatBuffer();//放置顶点坐标数组
-            fbbz.put(axio_z);
-            ibbz.position(0);//定位指针的位置,从该位置开始读取顶点数据
-            gl.glColor4f( 0.5f, 0.5f,1f, 1f);//设置绘图时的颜色
-            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, ibbz);
-            gl.glDrawArrays(GL10.GL_LINES, 0, 2);//绘制z轴
-
-            //分配字节缓冲区控件,存放顶点坐标数据
-            ByteBuffer ibbx1 = ByteBuffer.allocateDirect(a_x.length * 4);
-            ibbx1.order(ByteOrder.nativeOrder());//设置顺序(本地顺序)
-            FloatBuffer fbbx1 = ibbx1.asFloatBuffer();//放置顶点坐标数组
-            fbbx1.put(a_x);
-            ibbx1.position(0);//定位指针的位置,从该位置开始读取顶点数据
-            gl.glColor4f(1f, 0.6f, 0.6f, 1f);//设置绘图时的颜色
-            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, ibbx1);
-            gl.glDrawArrays(GL10.GL_LINES, 0, 2);//绘制x轴
-
-            //分配字节缓冲区控件,存放顶点坐标数据
-            ByteBuffer ibby1 = ByteBuffer.allocateDirect(a_y.length * 4);
-            ibby1.order(ByteOrder.nativeOrder());//设置顺序(本地顺序)
-            FloatBuffer fbby1 = ibby1.asFloatBuffer();//放置顶点坐标数组
-            fbby1.put(a_y);
-            ibby1.position(0);//定位指针的位置,从该位置开始读取顶点数据
-            gl.glColor4f(0.6f,1f,  0.6f, 1f);//设置绘图时的颜色
-            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, ibby1);
-            gl.glDrawArrays(GL10.GL_LINES, 0, 2);//绘制y轴
-        }
-
-        public void onSurfaceChanged(GL10 gl, int width, int height)
-        {
-            gl.glViewport(0, 0, width, height);
-
-            //矩阵模式,投影矩阵,openGL基于状态机
-            gl.glMatrixMode(GL10.GL_PROJECTION);
-            //加载单位矩阵
-            gl.glLoadIdentity();
-            //平截头体(最后一个f表示他是浮点数的类型)
-            // gl.glFrustumf(-0.5f, 0.5f, -0.5f, 0.5f, 2f, 10);
-            gl.glOrthof(-2f, 2f, -2f, 2f, 2f, 10);
-        }
-    }
+//    //以下部分为OpenGL，显示3D图像
+//    class MyRenderer implements GLSurfaceView.Renderer
+//    {
+//        public void onSurfaceCreated(GL10 gl, javax.microedition.khronos.egl.EGLConfig config)
+//        {
+//            // Set the background frame color
+////            GLES20.glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+////            GLES20.glVertexAttribPointer();
+//            gl.glClearColor(0, 0, 0, 1);
+//            //启用顶点缓冲区
+//            gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+//            //  GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+//            //  GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+//        }
+//
+//        public void onDrawFrame(GL10 gl)
+//        {
+//            gl.glClear(GL10.GL_COLOR_BUFFER_BIT);//清除颜色缓冲区
+//
+//            //模型视图矩阵
+//            gl.glMatrixMode(gl.GL_MODELVIEW);
+//            gl.glLoadIdentity();
+//
+//            GLU.gluLookAt(gl, 5,5, 5, 0, 0, 0, 0,0,1);
+//
+//            // 画三角形
+//            // 绘制数组
+//            // 三角形坐标
+//            float[] coords = {
+//                    1f,0f,1f,
+//                    -1f,0f,1f,
+//                    1f,0f,-1f,
+//                    -1f,0f,-1f,
+//            };
+//            float[] axio_x={0f,0f,0f,2f,0f,0f};
+//            float[] axio_y={0f,0f,0f,0f,2f,0f};
+//            float[] axio_z={0f,0f,0f,0f,0f,2f};
+//
+//            //分配字节缓冲区控件,存放顶点坐标数据
+//            float chip[]=new float[12];
+//
+//            chip[0]=a_x[3]+a_y[3];
+//            chip[1]=a_x[4]+a_y[4];
+//            chip[2]=a_x[5]+a_y[5];
+//
+//            chip[3]=a_x[3]-a_y[3];
+//            chip[4]=a_x[4]-a_y[4];
+//            chip[5]=a_x[5]-a_y[5];
+//
+//            chip[6]=a_y[3]-a_x[3];
+//            chip[7]=a_y[4]-a_x[4];
+//            chip[8]=a_y[5]-a_x[5];
+//
+//            chip[9]=-chip[0];
+//            chip[10]=-chip[1];
+//            chip[11]=-chip[2];
+//
+//            ByteBuffer ibb = ByteBuffer.allocateDirect(coords.length * 4);
+//            ibb.order(ByteOrder.nativeOrder());//设置顺序(本地顺序)
+//            FloatBuffer fbb = ibb.asFloatBuffer();//放置顶点坐标数组
+//            fbb.put(coords);
+//            ibb.position(0);//定位指针的位置,从该位置开始读取顶点数据
+//            gl.glColor4f(0.5f, 0.5f, 0.5f, 1f);//设置绘图时的颜色
+//            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, ibb);
+//            gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);//绘制四边形
+//
+//            ibb = ByteBuffer.allocateDirect(chip.length * 4);
+//            ibb.order(ByteOrder.nativeOrder());//设置顺序(本地顺序)
+//            fbb = ibb.asFloatBuffer();//放置顶点坐标数组
+//            fbb.put(chip);
+//            ibb.position(0);//定位指针的位置,从该位置开始读取顶点数据
+//            gl.glColor4f(0.5f, 0.5f, 0.5f, 1f);//设置绘图时的颜色
+//            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, ibb);
+//            gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);//绘制四边形
+//
+//            //分配字节缓冲区控件,存放顶点坐标数据
+//            ByteBuffer ibbx = ByteBuffer.allocateDirect(axio_x.length * 4);
+//            ibbx.order(ByteOrder.nativeOrder());//设置顺序(本地顺序)
+//            FloatBuffer fbbx = ibbx.asFloatBuffer();//放置顶点坐标数组
+//            fbbx.put(axio_x);
+//            ibbx.position(0);//定位指针的位置,从该位置开始读取顶点数据
+//            gl.glColor4f(1f, 0.5f, 0.5f, 1f);//设置绘图时的颜色
+//            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, ibbx);
+//            gl.glDrawArrays(GL10.GL_LINES, 0, 2);//绘制x轴
+//
+//            //分配字节缓冲区控件,存放顶点坐标数据
+//            ByteBuffer ibby = ByteBuffer.allocateDirect(axio_y.length * 4);
+//            ibby.order(ByteOrder.nativeOrder());//设置顺序(本地顺序)
+//            FloatBuffer fbby = ibby.asFloatBuffer();//放置顶点坐标数组
+//            fbby.put(axio_y);
+//            ibby.position(0);//定位指针的位置,从该位置开始读取顶点数据
+//            gl.glColor4f(0.5f,1f,  0.5f, 1f);//设置绘图时的颜色
+//            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, ibby);
+//            gl.glDrawArrays(GL10.GL_LINES, 0, 2);//绘制y轴
+//
+//            //分配字节缓冲区控件,存放顶点坐标数据
+//            ByteBuffer ibbz = ByteBuffer.allocateDirect(axio_z.length * 4);
+//            ibbz.order(ByteOrder.nativeOrder());//设置顺序(本地顺序)
+//            FloatBuffer fbbz = ibbz.asFloatBuffer();//放置顶点坐标数组
+//            fbbz.put(axio_z);
+//            ibbz.position(0);//定位指针的位置,从该位置开始读取顶点数据
+//            gl.glColor4f( 0.5f, 0.5f,1f, 1f);//设置绘图时的颜色
+//            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, ibbz);
+//            gl.glDrawArrays(GL10.GL_LINES, 0, 2);//绘制z轴
+//
+//            //分配字节缓冲区控件,存放顶点坐标数据
+//            ByteBuffer ibbx1 = ByteBuffer.allocateDirect(a_x.length * 4);
+//            ibbx1.order(ByteOrder.nativeOrder());//设置顺序(本地顺序)
+//            FloatBuffer fbbx1 = ibbx1.asFloatBuffer();//放置顶点坐标数组
+//            fbbx1.put(a_x);
+//            ibbx1.position(0);//定位指针的位置,从该位置开始读取顶点数据
+//            gl.glColor4f(1f, 0.6f, 0.6f, 1f);//设置绘图时的颜色
+//            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, ibbx1);
+//            gl.glDrawArrays(GL10.GL_LINES, 0, 2);//绘制x轴
+//
+//            //分配字节缓冲区控件,存放顶点坐标数据
+//            ByteBuffer ibby1 = ByteBuffer.allocateDirect(a_y.length * 4);
+//            ibby1.order(ByteOrder.nativeOrder());//设置顺序(本地顺序)
+//            FloatBuffer fbby1 = ibby1.asFloatBuffer();//放置顶点坐标数组
+//            fbby1.put(a_y);
+//            ibby1.position(0);//定位指针的位置,从该位置开始读取顶点数据
+//            gl.glColor4f(0.6f,1f,  0.6f, 1f);//设置绘图时的颜色
+//            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, ibby1);
+//            gl.glDrawArrays(GL10.GL_LINES, 0, 2);//绘制y轴
+//        }
+//
+//        public void onSurfaceChanged(GL10 gl, int width, int height)
+//        {
+//            gl.glViewport(0, 0, width, height);
+//
+//            //矩阵模式,投影矩阵,openGL基于状态机
+//            gl.glMatrixMode(GL10.GL_PROJECTION);
+//            //加载单位矩阵
+//            gl.glLoadIdentity();
+//            //平截头体(最后一个f表示他是浮点数的类型)
+//            // gl.glFrustumf(-0.5f, 0.5f, -0.5f, 0.5f, 2f, 10);
+//            gl.glOrthof(-2f, 2f, -2f, 2f, 2f, 10);
+//        }
+//    }
 }
 
 class TCP_sendMove
