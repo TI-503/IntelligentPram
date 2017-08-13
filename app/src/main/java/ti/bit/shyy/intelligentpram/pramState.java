@@ -26,6 +26,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.opengl.GLSurfaceView;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
@@ -80,6 +81,8 @@ public class pramState extends AppCompatActivity {
     private TCP_GetState TCPst;
     private TCP_sendMove TCPsM;
 
+    private boolean MonitorFlag = false;
+
 //    private GLSurfaceView  mView;
 //    private final float pi=(float)Math.acos(0.0)*2;
 //    private double alpha[]={pi/3,pi/3,pi/3};
@@ -96,7 +99,7 @@ public class pramState extends AppCompatActivity {
         meter = ((LinearLayout) findViewById(R.id.meter));
         alcohol = ((LinearLayout) findViewById(R.id.alcohol));
 
-        // Video
+        //Video
         webView = (WebView) findViewById(R.id.webView);
         webView.getSettings().setLoadWithOverviewMode(true);
         webView.getSettings().setUseWideViewPort(true);
@@ -111,14 +114,27 @@ public class pramState extends AppCompatActivity {
         Button_startMonitor.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View videoV) {
-                // WebView
-                webView.loadUrl("http://192.168.10.1:8080/?action=stream");
+                if(MonitorFlag == false){
+                    MonitorFlag = true;
+                    Button_startMonitor.setText("停止视频、传感器监听");
+                    // WebView
+                    webView.loadUrl("http://192.168.10.1:8080/?action=stream");
 
-                // State
-                TCPst = new TCP_GetState();
-                TCPst.execute();
+                    // State
+                    TCPst = new TCP_GetState();
+                    TCPst.execute();
+                }
+                else{
+                    MonitorFlag = false;
 
-                Button_startMonitor.setEnabled(false);
+                    Button_startMonitor.setText("开始视频、传感器监听");
+                    TextV_State.setTextColor(Color.BLUE);
+                    TextV_State.setText("等待数据...");
+                    webView.loadUrl("about:blank");
+
+                    TCPst.cancel(true);
+                }
+
             }
         });
 
@@ -304,11 +320,36 @@ public class pramState extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... param) {
+
             try {
-                ServerSocket serverSocket = new ServerSocket(5001);
-                Socket TCP_Socket = serverSocket.accept();
-                while (true) {
-                    InputStream inputStream = TCP_Socket.getInputStream();
+                //创建TCPServer
+//                ServerSocket serverSocket = new ServerSocket(5001);
+//                Socket TCP_Socket = serverSocket.accept();
+//                while (true) {
+//                    InputStream inputStream = TCP_Socket.getInputStream();
+//                    BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+//                    String StateData;
+//                    StateData = br.readLine();
+//                    Log.d("TCP", StateData);
+//
+//                    publishProgress(StateData);
+
+                //创建TCP Client
+                Socket accTmp_Socket = new Socket();
+                accTmp_Socket.connect(new InetSocketAddress("192.168.10.208", 5001));
+
+                //循环接收温度加速度字符串
+                while(MonitorFlag) {
+//                    BufferedInputStream BIS = new BufferedInputStream(accTmp_Socket.getInputStream());
+//                    DataInputStream DIS = new DataInputStream(BIS);
+//
+//                    byte[] inputBytes = new byte[1024];
+//                    DIS.read(inputBytes);
+//                    String inputString = new String(inputBytes);
+//                    Log.d("TCP Client", inputString);
+//
+//                    publishProgress(inputString);
+                    InputStream inputStream = accTmp_Socket.getInputStream();
                     BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
                     String StateData;
                     StateData = br.readLine();
@@ -316,6 +357,9 @@ public class pramState extends AppCompatActivity {
 
                     publishProgress(StateData);
                 }
+
+                accTmp_Socket.close();
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -471,14 +515,14 @@ public class pramState extends AppCompatActivity {
         // Safe Z > 55
         // Dangerous Z [45, 55]
         // DIE Z < 45
-        if(AccelerateZ >= 60)
+        if(AccelerateZ <= -60)
         {
             TextV_State.setTextColor(Color.GREEN);
             TextV_State.setText("安 全");
         }
         else
         {
-            if(AccelerateZ >= 45)
+            if(AccelerateZ <= -45)
             {
                 TextV_State.setTextColor(Color.rgb(255,97,0));
                 TextV_State.setText("危 险！");
@@ -486,7 +530,7 @@ public class pramState extends AppCompatActivity {
             }
             else
             {
-                if(AccelerateZ < 45)
+                if(AccelerateZ > -45)
                 {
                     TextV_State.setTextColor(Color.RED);
                     TextV_State.setText("即 将 倾 覆！！！");
