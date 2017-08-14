@@ -153,12 +153,12 @@
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="Cw"
+        android:text="顺时针"
+        android:textSize="12sp"
         android:textAllCaps="false"
-        android:textStyle="bold"
         app:layout_constraintLeft_toRightOf="@+id/goFrontButton"
         app:layout_constraintTop_toBottomOf="@+id/stateText"
-        tools:text="Cw" />
+        tools:text="顺时针" />
 
     <Button
         android:id="@+id/goAntiClockwiseButton"
@@ -168,12 +168,12 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:elevation="0dp"
-        android:text="ACw"
+        android:text="逆时针"
+        android:textSize="12sp"
         android:textAllCaps="false"
-        android:textStyle="bold"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/stateText"
-        tools:text="ACw" />
+        tools:text="逆时针" />
 
     <LinearLayout
         android:id="@+id/Parent"
@@ -292,7 +292,7 @@
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="听声定位"
+        android:text="声音定位"
         android:textSize="12sp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/goLeftButton" />
@@ -304,7 +304,7 @@
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="停止记录"
+        android:text="停止定位"
         android:textSize="12sp"
         app:layout_constraintLeft_toRightOf="@+id/goRearButton"
         app:layout_constraintTop_toBottomOf="@+id/goRightButton" />
