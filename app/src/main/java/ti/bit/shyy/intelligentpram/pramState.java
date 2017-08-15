@@ -128,13 +128,12 @@ public class pramState extends AppCompatActivity {
                     MonitorFlag = false;
 
                     Button_startMonitor.setText("开始视频、传感器监听");
-                    TextV_State.setTextColor(Color.BLUE);
-                    TextV_State.setText("等待数据...");
+                    TextV_State.setTextColor(Color.parseColor("#ffff8800"));
+                    TextV_State.setText("等待监听");
                     webView.loadUrl("about:blank");
 
                     TCPst.cancel(true);
                 }
-
             }
         });
 
