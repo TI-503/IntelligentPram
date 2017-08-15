@@ -100,7 +100,7 @@ public class sendSound extends AppCompatActivity
             try
             {
                 Resources resources = context.getResources();
-                InputStream soundIS = resources.openRawResource(R.raw.sakurahanasyou);
+                InputStream soundIS = resources.openRawResource(R.raw.xiyangyang);
 
                 DatagramSocket DS = new DatagramSocket();
 
