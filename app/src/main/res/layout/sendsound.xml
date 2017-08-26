@@ -50,4 +50,26 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
 
+    <Button
+        android:id="@+id/volumeUpButton"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginRight="32dp"
+        android:layout_marginTop="32dp"
+        android:text="Vol+"
+        android:textAlignment="center"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/sendSoundText" />
+
+    <Button
+        android:id="@+id/volumeDownButton"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginRight="32dp"
+        android:layout_marginTop="32dp"
+        android:text="Vol-"
+        android:textAlignment="center"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/volumeUpButton" />
+
 </android.support.constraint.ConstraintLayout>
