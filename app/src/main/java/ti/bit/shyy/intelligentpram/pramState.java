@@ -77,6 +77,7 @@ public class pramState extends AppCompatActivity {
     private float AccelerateZ;
 
     static public TextView TextV_State;
+    public TextView TextV_tempState;
     public WebView webView;
     private TCP_GetState TCPst;
     private TCP_sendMove TCPsM;
@@ -110,6 +111,7 @@ public class pramState extends AppCompatActivity {
 
         // Start monitor
         TextV_State = (TextView) findViewById(R.id.stateText);
+        TextV_tempState = (TextView)findViewById(R.id.tempStateText);
         Button_startMonitor = (Button) findViewById(R.id.startMonitorButton);
         Button_startMonitor.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -129,7 +131,9 @@ public class pramState extends AppCompatActivity {
 
                     Button_startMonitor.setText("开始视频、传感器监听");
                     TextV_State.setTextColor(Color.parseColor("#ffff8800"));
-                    TextV_State.setText("等待监听");
+                    TextV_State.setText("传感器等待监听");
+                    TextV_tempState.setTextColor(Color.parseColor("#ffff8800"));
+                    TextV_tempState.setText("温度等待监听");
                     webView.loadUrl("about:blank");
 
                     TCPst.cancel(true);
@@ -273,6 +277,7 @@ public class pramState extends AppCompatActivity {
         });
 
         // Listen Sound
+        // In this state, other buttons except stopLisntenSound Button should be unable.
         Button_listenSound = (Button) findViewById(R.id.listenSoundButton);
         Button_listenSound.setOnClickListener(new View.OnClickListener()
         {
@@ -286,12 +291,25 @@ public class pramState extends AppCompatActivity {
                         TCPsM.listenSound();
                     }
                 });
+
+                Button_goFront.setEnabled(false);
+                Button_goRear.setEnabled(false);
+                Button_goLeft.setEnabled(false);
+                Button_goRight.setEnabled(false);
+                Button_goClockwise.setEnabled(false);
+                Button_goAntiClockwise.setEnabled(false);
+                Button_stopMove.setEnabled(false);
+                Button_listenSound.setEnabled(false);
+                Button_stopListenSound.setEnabled(true);
+
                 sendMoveSubThread.start();
             }
         });
 
         // Stop Listen Sound
+        // This state is setEnable(false) in default.
         Button_stopListenSound = (Button) findViewById(R.id.stopListenSoundButton);
+        Button_stopListenSound.setEnabled(false);
         Button_stopListenSound.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -304,6 +322,17 @@ public class pramState extends AppCompatActivity {
                         TCPsM.stopListenSound();
                     }
                 });
+
+                Button_goFront.setEnabled(true);
+                Button_goRear.setEnabled(true);
+                Button_goLeft.setEnabled(true);
+                Button_goRight.setEnabled(true);
+                Button_goClockwise.setEnabled(true);
+                Button_goAntiClockwise.setEnabled(true);
+                Button_stopMove.setEnabled(true);
+                Button_listenSound.setEnabled(true);
+                Button_stopListenSound.setEnabled(false);
+
                 sendMoveSubThread.start();
             }
         });
@@ -315,6 +344,8 @@ public class pramState extends AppCompatActivity {
         {
             TextV_State.setTextColor(Color.BLUE);
             TextV_State.setText("等待数据...");
+            TextV_tempState.setTextColor(Color.BLUE);
+            TextV_tempState.setText("等待数据...");
         }
 
         @Override
@@ -463,6 +494,30 @@ public class pramState extends AppCompatActivity {
         // 把刻度表看出总共700份，如何计算缩放比例。从-20°到50°。
         // 例如，现在温度是30°的话，应该占（30+20）*10=500份 其中20是0到-20°所占有的份
         this.temp = (float) ((20.0F + getTemperatureC()) * 10) / (70.0F * 10);
+
+        // Dangerous Check
+        float tempC = getTemperatureC();
+        if(tempC > 30)
+        {
+            // HOT: tempC > 30
+            TextV_tempState.setTextColor(Color.RED);
+            TextV_tempState.setText("温 度 过 热！");
+        }
+        else
+        {
+            if(tempC >= 20)
+            {
+                // FIT: 20 <= tempC <= 30
+                TextV_tempState.setTextColor(Color.GREEN);
+                TextV_tempState.setText("温 度 适 中");
+            }
+            else
+            {
+                // COLD: tempC < 20
+                TextV_tempState.setTextColor(Color.BLUE);
+                TextV_tempState.setText("温 度 过 冷！");
+            }
+        }
     }
 
     /*

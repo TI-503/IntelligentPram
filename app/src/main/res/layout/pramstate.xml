@@ -20,12 +20,12 @@
 
     <TextView
         android:id="@+id/stateText"
-        android:layout_width="260dp"
+        android:layout_width="130dp"
         android:layout_height="30dp"
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="等待监听"
+        android:text="传感器等待监听"
         android:textAlignment="center"
         android:textColor="@android:color/holo_orange_dark"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -308,6 +308,18 @@
         android:textSize="12sp"
         app:layout_constraintLeft_toRightOf="@+id/goRearButton"
         app:layout_constraintTop_toBottomOf="@+id/goRightButton" />
+
+    <TextView
+        android:id="@+id/tempStateText"
+        android:layout_width="130dp"
+        android:layout_height="30dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:text="温度等待监听"
+        android:textAlignment="center"
+        android:textColor="@android:color/holo_orange_dark"
+        app:layout_constraintLeft_toRightOf="@+id/stateText"
+        app:layout_constraintTop_toBottomOf="@+id/sensorText" />
 
     <!--android.opengl.GLSurfaceView
         android:id="@+id/glview_1"
