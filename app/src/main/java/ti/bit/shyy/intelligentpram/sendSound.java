@@ -3,28 +3,19 @@ package ti.bit.shyy.intelligentpram;
 import android.content.Context;
 import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
-import android.support.annotation.IdRes;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.content.Intent;
 import android.widget.TextView;
 
 
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketException;
 import android.content.res.Resources;
 
 /**

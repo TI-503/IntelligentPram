@@ -49,14 +49,14 @@
 
     <Button
         android:id="@+id/startMonitorButton"
-        android:layout_width="275dp"
+        android:layout_width="130dp"
         android:layout_height="48dp"
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:onClick="startMonitor"
         android:text="开启视频、传感器监听"
-        android:textSize="14sp"
+        android:textSize="12sp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/webView" />
 
@@ -320,6 +320,16 @@
         android:textColor="@android:color/holo_orange_dark"
         app:layout_constraintLeft_toRightOf="@+id/stateText"
         app:layout_constraintTop_toBottomOf="@+id/sensorText" />
+
+    <Button
+        android:id="@+id/pramShakeButton"
+        android:layout_width="130dp"
+        android:layout_height="48dp"
+        android:text="开始摇篮摇动"
+        app:layout_constraintLeft_toRightOf="@+id/startMonitorButton"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/webView" />
 
     <!--android.opengl.GLSurfaceView
         android:id="@+id/glview_1"

@@ -1,51 +1,24 @@
 package ti.bit.shyy.intelligentpram;
 
-import android.app.Activity;
-import android.content.Context;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.media.SoundPool;
-import android.opengl.EGLConfig;
-import android.opengl.GLU;
 import android.os.AsyncTask;
-import android.os.StrictMode;
-import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.animation.ScaleAnimation;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.opengl.GLSurfaceView;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import javax.microedition.khronos.opengles.GL10;
 
 /**
  * Created by ShinoharaYuyoru on 2017/06/18.
@@ -53,6 +26,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class pramState extends AppCompatActivity {
     public Button Button_startMonitor;
+    public Button Button_pramShake;
     public Button Button_returnMain1;
     public Button Button_goFront;
     public Button Button_goRear;
@@ -82,7 +56,9 @@ public class pramState extends AppCompatActivity {
     private TCP_GetState TCPst;
     private TCP_sendMove TCPsM;
 
-    private boolean MonitorFlag = false;
+    private boolean MonitorInUseFlag = false;
+    private boolean pramIsShakingFlag = false;
+    private boolean sendOnceFlag = true;
 
 //    private GLSurfaceView  mView;
 //    private final float pi=(float)Math.acos(0.0)*2;
@@ -116,9 +92,10 @@ public class pramState extends AppCompatActivity {
         Button_startMonitor.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View videoV) {
-                if(MonitorFlag == false){
-                    MonitorFlag = true;
+                if(MonitorInUseFlag == false){
+                    MonitorInUseFlag = true;
                     Button_startMonitor.setText("停止视频、传感器监听");
+
                     // WebView
                     webView.loadUrl("http://192.168.10.1:8080/?action=stream");
 
@@ -127,7 +104,7 @@ public class pramState extends AppCompatActivity {
                     TCPst.execute();
                 }
                 else{
-                    MonitorFlag = false;
+                    MonitorInUseFlag = false;
 
                     Button_startMonitor.setText("开始视频、传感器监听");
                     TextV_State.setTextColor(Color.parseColor("#ffff8800"));
@@ -138,6 +115,60 @@ public class pramState extends AppCompatActivity {
 
                     TCPst.cancel(true);
                 }
+            }
+        });
+
+        Button_pramShake = (Button) findViewById(R.id.pramShakeButton);
+        Button_pramShake.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View PramShakeV)
+            {
+                if(MonitorInUseFlag == false)
+                {
+                    if(pramIsShakingFlag == false)
+                    {
+                        pramIsShakingFlag = true;
+                        Button_pramShake.setText("停止摇篮摇动");
+
+                        sendMoveSubThread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                TCPsM = new TCP_sendMove();
+                                TCPsM.pramShake();
+                            }
+                        });
+                        sendMoveSubThread.start();
+                    }
+                    else
+                    {
+                        pramIsShakingFlag = false;
+                        Button_pramShake.setText("开始摇篮摇动");
+
+                        sendMoveSubThread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                TCPsM = new TCP_sendMove();
+                                TCPsM.stopPramShake();
+                            }
+                        });
+                        sendMoveSubThread.start();
+                    }
+                }
+                else
+                {
+                    if(pramIsShakingFlag == false)
+                    {
+                        pramIsShakingFlag = true;
+                        Button_pramShake.setText("停止摇篮摇动");
+                    }
+                    else
+                    {
+                        pramIsShakingFlag = false;
+                        Button_pramShake.setText("开始摇篮摇动");
+                    }
+                }
+
+                sendOnceFlag = true;
             }
         });
 
@@ -368,8 +399,9 @@ public class pramState extends AppCompatActivity {
                 Socket accTmp_Socket = new Socket();
                 accTmp_Socket.connect(new InetSocketAddress("192.168.10.208", 5001));
 
-                //循环接收温度加速度字符串
-                while(MonitorFlag) {
+                // Send a command: 1)cgqsj: Monitor  2)shake: Pram shake start  3)stopShake: Pram shake stop.
+                // No matter what the command is, will get the data about the pram state.
+                while(MonitorInUseFlag == true) {
 //                    BufferedInputStream BIS = new BufferedInputStream(accTmp_Socket.getInputStream());
 //                    DataInputStream DIS = new DataInputStream(BIS);
 //
@@ -379,6 +411,48 @@ public class pramState extends AppCompatActivity {
 //                    Log.d("TCP Client", inputString);
 //
 //                    publishProgress(inputString);
+
+                    if(sendOnceFlag == true)
+                    {
+                        // About the pram, shake or stopShake, just send once.
+                        if(pramIsShakingFlag == true)
+                        {
+                            String t;
+                            t = "fuck";
+
+                            DataOutputStream DOS = new DataOutputStream(accTmp_Socket.getOutputStream());
+                            String pramShakeStr = "shake";
+                            DOS.write(pramShakeStr.getBytes());
+                            DOS.flush();
+                            DOS.close();
+                        }
+                        else
+                        {
+                            String t;
+                            t = "fuck";
+
+                            DataOutputStream DOS = new DataOutputStream(accTmp_Socket.getOutputStream());
+                            String pramShakeStr = "stopShake";
+                            DOS.write(pramShakeStr.getBytes());
+                            DOS.flush();
+                            DOS.close();
+                        }
+
+                        sendOnceFlag = false;
+                    }
+                    else
+                    {
+                        String t;
+                        t = "fuck";
+
+                        // If no command about pram shaking, just send cgqsj.
+                        DataOutputStream DOS = new DataOutputStream(accTmp_Socket.getOutputStream());
+                        String pramShakeStr = "cgqsj";
+                        DOS.write(pramShakeStr.getBytes());
+                        DOS.flush();
+                        DOS.close();
+                    }
+
                     InputStream inputStream = accTmp_Socket.getInputStream();
                     BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
                     String StateData;
@@ -737,6 +811,50 @@ public class pramState extends AppCompatActivity {
 
 class TCP_sendMove
 {
+    // Pram Shake
+    public void pramShake()
+    {
+        try
+        {
+            Socket goFront_Socket = new Socket();
+            goFront_Socket.connect(new InetSocketAddress("192.168.10.208", 5001));
+
+            DataOutputStream DOS = new DataOutputStream(goFront_Socket.getOutputStream());
+            String pramShakeStr = "shake";
+            DOS.write(pramShakeStr.getBytes());
+            DOS.flush();
+            DOS.close();
+
+            goFront_Socket.close();
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    // Stop Pram Shake
+    public void stopPramShake()
+    {
+        try
+        {
+            Socket goFront_Socket = new Socket();
+            goFront_Socket.connect(new InetSocketAddress("192.168.10.208", 5001));
+
+            DataOutputStream DOS = new DataOutputStream(goFront_Socket.getOutputStream());
+            String stopPramShakeStr = "stopShake";
+            DOS.write(stopPramShakeStr.getBytes());
+            DOS.flush();
+            DOS.close();
+
+            goFront_Socket.close();
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
     public void goFront()
     {
         try
