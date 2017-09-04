@@ -58,7 +58,7 @@ public class pramState extends AppCompatActivity {
 
     private boolean MonitorInUseFlag = false;
     private boolean pramIsShakingFlag = false;
-    private boolean sendOnceFlag = true;
+    private boolean sendOnceFlag = false;
 
 //    private GLSurfaceView  mView;
 //    private final float pi=(float)Math.acos(0.0)*2;
@@ -156,6 +156,8 @@ public class pramState extends AppCompatActivity {
                 }
                 else
                 {
+                    sendOnceFlag = true;
+
                     if(pramIsShakingFlag == false)
                     {
                         pramIsShakingFlag = true;
@@ -167,8 +169,6 @@ public class pramState extends AppCompatActivity {
                         Button_pramShake.setText("开始摇篮摇动");
                     }
                 }
-
-                sendOnceFlag = true;
             }
         });
 
