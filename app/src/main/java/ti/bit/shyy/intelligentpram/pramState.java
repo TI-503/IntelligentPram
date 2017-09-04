@@ -399,7 +399,7 @@ public class pramState extends AppCompatActivity {
                 Socket accTmp_Socket = new Socket();
                 accTmp_Socket.connect(new InetSocketAddress("192.168.10.208", 5001));
 
-                // Send a command: 1)cgqsj: Monitor  2)shake: Pram shake start  3)stopShake: Pram shake stop.
+                // Send a command: 1)cgqsj: Monitor  2)shake: Pram shake start  3)noshake: Pram shake stop.
                 // No matter what the command is, will get the data about the pram state.
                 while(MonitorInUseFlag == true) {
 //                    BufferedInputStream BIS = new BufferedInputStream(accTmp_Socket.getInputStream());
@@ -411,15 +411,11 @@ public class pramState extends AppCompatActivity {
 //                    Log.d("TCP Client", inputString);
 //
 //                    publishProgress(inputString);
-
                     if(sendOnceFlag == true)
                     {
-                        // About the pram, shake or stopShake, just send once.
+                        // About the pram, shake or noshake, just send once.
                         if(pramIsShakingFlag == true)
                         {
-                            String t;
-                            t = "fuck";
-
                             DataOutputStream DOS = new DataOutputStream(accTmp_Socket.getOutputStream());
                             String pramShakeStr = "shake";
                             DOS.write(pramShakeStr.getBytes());
@@ -428,11 +424,8 @@ public class pramState extends AppCompatActivity {
                         }
                         else
                         {
-                            String t;
-                            t = "fuck";
-
                             DataOutputStream DOS = new DataOutputStream(accTmp_Socket.getOutputStream());
-                            String pramShakeStr = "stopShake";
+                            String pramShakeStr = "noshake";
                             DOS.write(pramShakeStr.getBytes());
                             DOS.flush();
                             DOS.close();
@@ -442,9 +435,6 @@ public class pramState extends AppCompatActivity {
                     }
                     else
                     {
-                        String t;
-                        t = "fuck";
-
                         // If no command about pram shaking, just send cgqsj.
                         DataOutputStream DOS = new DataOutputStream(accTmp_Socket.getOutputStream());
                         String pramShakeStr = "cgqsj";
@@ -842,7 +832,7 @@ class TCP_sendMove
             goFront_Socket.connect(new InetSocketAddress("192.168.10.208", 5001));
 
             DataOutputStream DOS = new DataOutputStream(goFront_Socket.getOutputStream());
-            String stopPramShakeStr = "stopShake";
+            String stopPramShakeStr = "noshake";
             DOS.write(stopPramShakeStr.getBytes());
             DOS.flush();
             DOS.close();
