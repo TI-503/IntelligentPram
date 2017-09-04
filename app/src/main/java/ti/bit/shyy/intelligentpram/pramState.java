@@ -382,7 +382,8 @@ public class pramState extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... param) {
 
-            try {
+            try
+            {
                 //创建TCPServer
 //                ServerSocket serverSocket = new ServerSocket(5001);
 //                Socket TCP_Socket = serverSocket.accept();
@@ -399,9 +400,13 @@ public class pramState extends AppCompatActivity {
                 Socket accTmp_Socket = new Socket();
                 accTmp_Socket.connect(new InetSocketAddress("192.168.10.208", 5001));
 
-                // Send a command: 1)cgqsj: Monitor  2)shake: Pram shake start  3)noshake: Pram shake stop.
+                DataOutputStream DOS = new DataOutputStream(accTmp_Socket.getOutputStream());
+                // Maybe need InputStream...?
+
+                // Send a command: 1)getdata: Monitor  2)shake: Pram shake start  3)noshake: Pram shake stop.
                 // No matter what the command is, will get the data about the pram state.
-                while(MonitorInUseFlag == true) {
+                while(MonitorInUseFlag == true)
+                {
 //                    BufferedInputStream BIS = new BufferedInputStream(accTmp_Socket.getInputStream());
 //                    DataInputStream DIS = new DataInputStream(BIS);
 //
@@ -416,45 +421,44 @@ public class pramState extends AppCompatActivity {
                         // About the pram, shake or noshake, just send once.
                         if(pramIsShakingFlag == true)
                         {
-                            DataOutputStream DOS = new DataOutputStream(accTmp_Socket.getOutputStream());
                             String pramShakeStr = "shake";
                             DOS.write(pramShakeStr.getBytes());
                             DOS.flush();
-                            DOS.close();
+                            //DOS.close();
                         }
                         else
                         {
-                            DataOutputStream DOS = new DataOutputStream(accTmp_Socket.getOutputStream());
                             String pramShakeStr = "noshake";
                             DOS.write(pramShakeStr.getBytes());
                             DOS.flush();
-                            DOS.close();
+                            //DOS.close();
                         }
 
                         sendOnceFlag = false;
                     }
                     else
                     {
-                        // If no command about pram shaking, just send cgqsj.
-                        DataOutputStream DOS = new DataOutputStream(accTmp_Socket.getOutputStream());
-                        String pramShakeStr = "cgqsj";
+                        // If no command about pram shaking, just send getdata.
+                        String pramShakeStr = "getdata";
                         DOS.write(pramShakeStr.getBytes());
                         DOS.flush();
-                        DOS.close();
+                        //DOS.close();
                     }
 
+                    String StateData = "";
                     InputStream inputStream = accTmp_Socket.getInputStream();
                     BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-                    String StateData;
                     StateData = br.readLine();
                     Log.d("TCP", StateData);
 
                     publishProgress(StateData);
                 }
 
+                DOS.close();
                 accTmp_Socket.close();
-
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 e.printStackTrace();
             }
 
