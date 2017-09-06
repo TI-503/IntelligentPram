@@ -26,8 +26,8 @@ public class sendSound extends AppCompatActivity
 {
     public Button Button_startSend;
     public Button Button_returnMain2;
-    public Button Button_volumeUp;
-    public Button Button_volumeDown;
+//    public Button Button_volumeUp;
+//    public Button Button_volumeDown;
     public TextView TextV_sendSound;
     private UDP_SendSound UDPst;
     public boolean checkStop = false;
@@ -64,53 +64,53 @@ public class sendSound extends AppCompatActivity
             }
         });
 
-        Button_volumeUp = (Button) findViewById(R.id.volumeUpButton);
-        Button_volumeUp.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try
-                {
-                    Socket goFront_Socket = new Socket();
-                    goFront_Socket.connect(new InetSocketAddress("192.168.10.135", 5001));      // NEED CHANGE
+//        Button_volumeUp = (Button) findViewById(R.id.volumeUpButton);
+//        Button_volumeUp.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                try
+//                {
+//                    Socket goFront_Socket = new Socket();
+//                    goFront_Socket.connect(new InetSocketAddress("192.168.10.135", 5001));      // NEED CHANGE
+//
+//                    DataOutputStream DOS = new DataOutputStream(goFront_Socket.getOutputStream());
+//                    String goFrontStr = "volume+";
+//                    DOS.write(goFrontStr.getBytes());
+//                    DOS.flush();
+//                    DOS.close();
+//
+//                    goFront_Socket.close();
+//                }
+//                catch(Exception e)
+//                {
+//                    e.printStackTrace();
+//                }
+//            }
+//        });
 
-                    DataOutputStream DOS = new DataOutputStream(goFront_Socket.getOutputStream());
-                    String goFrontStr = "volume+";
-                    DOS.write(goFrontStr.getBytes());
-                    DOS.flush();
-                    DOS.close();
-
-                    goFront_Socket.close();
-                }
-                catch(Exception e)
-                {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        Button_volumeDown = (Button) findViewById(R.id.volumeDownButton);
-        Button_volumeDown.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try
-                {
-                    Socket goFront_Socket = new Socket();
-                    goFront_Socket.connect(new InetSocketAddress("192.168.10.135", 5001));      // NEED CHANGE
-
-                    DataOutputStream DOS = new DataOutputStream(goFront_Socket.getOutputStream());
-                    String goFrontStr = "volume-";
-                    DOS.write(goFrontStr.getBytes());
-                    DOS.flush();
-                    DOS.close();
-
-                    goFront_Socket.close();
-                }
-                catch(Exception e)
-                {
-                    e.printStackTrace();
-                }
-            }
-        });
+//        Button_volumeDown = (Button) findViewById(R.id.volumeDownButton);
+//        Button_volumeDown.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                try
+//                {
+//                    Socket goFront_Socket = new Socket();
+//                    goFront_Socket.connect(new InetSocketAddress("192.168.10.135", 5001));      // NEED CHANGE
+//
+//                    DataOutputStream DOS = new DataOutputStream(goFront_Socket.getOutputStream());
+//                    String goFrontStr = "volume-";
+//                    DOS.write(goFrontStr.getBytes());
+//                    DOS.flush();
+//                    DOS.close();
+//
+//                    goFront_Socket.close();
+//                }
+//                catch(Exception e)
+//                {
+//                    e.printStackTrace();
+//                }
+//            }
+//        });
 
         // Return Main2
         Button_returnMain2 = (Button)findViewById(R.id.returnMainButton2);
