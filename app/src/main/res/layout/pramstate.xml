@@ -8,8 +8,8 @@
 
     <TextView
         android:id="@+id/sensorText"
-        android:layout_width="128dp"
-        android:layout_height="17dp"
+        android:layout_width="130dp"
+        android:layout_height="20dp"
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
@@ -330,6 +330,19 @@
         android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@+id/webView" />
+
+    <!--
+    <TextView
+        android:id="@+id/isListingText"
+        android:layout_width="130dp"
+        android:layout_height="20dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:textAlignment="center"
+        android:textColor="@android:color/holo_red_dark"
+        app:layout_constraintLeft_toRightOf="@+id/sensorText"
+        app:layout_constraintTop_toBottomOf="@+id/pramShakeButton" />
+    -->
 
     <!--android.opengl.GLSurfaceView
         android:id="@+id/glview_1"

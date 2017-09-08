@@ -52,13 +52,15 @@ public class pramState extends AppCompatActivity {
 
     static public TextView TextV_State;
     public TextView TextV_tempState;
+//    public TextView TextV_isListening;
     public WebView webView;
     private TCP_GetState TCPst;
-    private TCP_sendMove TCPsM;
 
     private boolean MonitorInUseFlag = false;
     private boolean pramIsShakingFlag = false;
     private boolean sendOnceFlag = false;
+//    private boolean stopListening = false;
+//    static String lastState = "";
 
 //    private GLSurfaceView  mView;
 //    private final float pi=(float)Math.acos(0.0)*2;
@@ -133,8 +135,7 @@ public class pramState extends AppCompatActivity {
                         sendMoveSubThread = new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                TCPsM = new TCP_sendMove();
-                                TCPsM.pramShake();
+                                pramShake();
                             }
                         });
                         sendMoveSubThread.start();
@@ -147,8 +148,7 @@ public class pramState extends AppCompatActivity {
                         sendMoveSubThread = new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                TCPsM = new TCP_sendMove();
-                                TCPsM.stopPramShake();
+                                stopPramShake();
                             }
                         });
                         sendMoveSubThread.start();
@@ -203,8 +203,7 @@ public class pramState extends AppCompatActivity {
                 sendMoveSubThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        TCPsM = new TCP_sendMove();
-                        TCPsM.goFront();
+                        goFront();
                     }
                 });
                 sendMoveSubThread.start();
@@ -219,8 +218,7 @@ public class pramState extends AppCompatActivity {
                 sendMoveSubThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        TCPsM = new TCP_sendMove();
-                        TCPsM.goRear();
+                        goRear();
                     }
                 });
                 sendMoveSubThread.start();
@@ -235,8 +233,7 @@ public class pramState extends AppCompatActivity {
                 sendMoveSubThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        TCPsM = new TCP_sendMove();
-                        TCPsM.goLeft();
+                        goLeft();
                     }
                 });
                 sendMoveSubThread.start();
@@ -251,8 +248,7 @@ public class pramState extends AppCompatActivity {
                 sendMoveSubThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        TCPsM = new TCP_sendMove();
-                        TCPsM.goRight();
+                        goRight();
                     }
                 });
                 sendMoveSubThread.start();
@@ -267,8 +263,7 @@ public class pramState extends AppCompatActivity {
                 sendMoveSubThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        TCPsM = new TCP_sendMove();
-                        TCPsM.goClockwise();
+                        goClockwise();
                     }
                 });
                 sendMoveSubThread.start();
@@ -283,8 +278,7 @@ public class pramState extends AppCompatActivity {
                 sendMoveSubThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        TCPsM = new TCP_sendMove();
-                        TCPsM.goAntiClockwise();
+                        goAntiClockwise();
                     }
                 });
                 sendMoveSubThread.start();
@@ -299,8 +293,7 @@ public class pramState extends AppCompatActivity {
                 sendMoveSubThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        TCPsM = new TCP_sendMove();
-                        TCPsM.stopMove();
+                        stopMove();
                     }
                 });
                 sendMoveSubThread.start();
@@ -308,6 +301,7 @@ public class pramState extends AppCompatActivity {
         });
 
         // Listen Sound
+//        TextV_isListening = (TextView) findViewById(R.id.isListingText);
         // In this state, other buttons except stopLisntenSound Button should be unable.
         Button_listenSound = (Button) findViewById(R.id.listenSoundButton);
         Button_listenSound.setOnClickListener(new View.OnClickListener()
@@ -318,8 +312,8 @@ public class pramState extends AppCompatActivity {
                 sendMoveSubThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        TCPsM = new TCP_sendMove();
-                        TCPsM.listenSound();
+                        listenSound();
+//                        changeLight();
                     }
                 });
 
@@ -333,6 +327,8 @@ public class pramState extends AppCompatActivity {
                 Button_listenSound.setEnabled(false);
                 Button_stopListenSound.setEnabled(true);
 
+//                stopListening = false;
+//                TextV_isListening.setText("等待连接...");   // Force On
                 sendMoveSubThread.start();
             }
         });
@@ -349,8 +345,7 @@ public class pramState extends AppCompatActivity {
                 sendMoveSubThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        TCPsM = new TCP_sendMove();
-                        TCPsM.stopListenSound();
+                        stopListenSound();
                     }
                 });
 
@@ -364,6 +359,8 @@ public class pramState extends AppCompatActivity {
                 Button_listenSound.setEnabled(true);
                 Button_stopListenSound.setEnabled(false);
 
+//                stopListening = true;
+//                TextV_isListening.setText("");  // Force Off
                 sendMoveSubThread.start();
             }
         });
@@ -801,10 +798,7 @@ public class pramState extends AppCompatActivity {
 //            gl.glOrthof(-2f, 2f, -2f, 2f, 2f, 10);
 //        }
 //    }
-}
 
-class TCP_sendMove
-{
     // Pram Shake
     public void pramShake()
     {
@@ -1009,12 +1003,104 @@ class TCP_sendMove
             DOS.write(listenSoundStr.getBytes());
             DOS.flush();
             DOS.close();
+
+            listenSound_Socket.close();
         }
         catch(Exception e)
         {
             e.printStackTrace();
         }
     }
+
+//    // Change the light during listening sound
+//    public void changeLight()
+//    {
+//
+//
+//        AsyncTask asyncTask = new AsyncTask() {
+//            @Override
+//            protected void onPreExecute() {
+//
+//            }
+//
+//            protected void doInBackground()
+//            {
+//                String StateData = "";
+//
+//                while(true)
+//                {
+//                    if(stopListening == true)
+//                    {
+//                        break;
+//                    }
+//
+//                    try
+//                    {
+//                        Socket changeLight_Socket = new Socket();
+//                        changeLight_Socket.connect(new InetSocketAddress("192.168.10.135", 5001));
+//
+//                        DataOutputStream DOS = new DataOutputStream(changeLight_Socket.getOutputStream());
+//                        String getLightState = "light";
+//                        DOS.write(getLightState.getBytes());
+//                        DOS.flush();
+//
+//                        InputStream inputStream = changeLight_Socket.getInputStream();
+//                        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+//                        StateData = br.readLine();
+//
+//                        DOS.close();
+//                        changeLight_Socket.close();
+//
+//                        onPostExecute(StateData);
+//
+//                        try
+//                        {
+//                            Thread.sleep(500);
+//                        }
+//                        catch (InterruptedException e)
+//                        {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                    catch (Exception e)
+//                    {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//
+//            protected void onPostExecute(String... StateData)
+//            {
+//                if(StateData.equals("on"))
+//                {
+//                    if(StateData.equals(lastState) == false)
+//                    {
+//                        // On
+//                        TextV_isListening.setText("等待定位...");
+//
+//                        lastState = "on";
+//                    }
+//                }
+//                if(StateData.equals("off"))
+//                {
+//                    if(StateData.equals(lastState) == false)
+//                    {
+//                        // Off
+//                        TextV_isListening.setText("");
+//
+//                        lastState = "off";
+//                    }
+//                }
+//            }
+//
+//            protected void onCancelled()
+//            {
+//
+//            }
+//        };
+//
+//        asyncTask.execute();
+//    }
 
     // Stop Listen Sound
     public void stopListenSound()
@@ -1029,6 +1115,8 @@ class TCP_sendMove
             DOS.write(stopListenSoundStr.getBytes());
             DOS.flush();
             DOS.close();
+
+            stopListenSound_Socket.close();
         }
         catch(Exception e)
         {
