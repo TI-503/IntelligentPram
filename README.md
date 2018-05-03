@@ -1,2 +1,2 @@
 # IntelligentPram
-Noob's codes, please don't laugh at this, thx!
+Android Application for 2017 Undergraduate IoT Contest.
